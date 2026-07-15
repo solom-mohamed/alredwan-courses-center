@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/attendance/', include('attendance.urls')),
     path('api/', include('enrollments_payments.urls')),
     path('api/parents/', include('parents.urls')),
+    path('api/memories/', include('memories.urls')),
 ]
 
 

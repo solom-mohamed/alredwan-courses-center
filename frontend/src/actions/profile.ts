@@ -17,7 +17,8 @@ export async function updateProfile(data: {
     const response = await apiClient.patch("/auth/users/me/", data);
     revalidatePath("/dashboard/profile");
     return { data: response.data, error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (isAxiosError(error)) {
       return {
         data: null,
@@ -47,7 +48,8 @@ export async function getMe() {
 
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Error fetching user profile:", error);
     return null;
   }
@@ -76,7 +78,8 @@ export async function uploadProfileImage(formData: FormData) {
     revalidatePath("/dashboard/profile");
     revalidatePath("/");
     return { data: data, error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Upload error:", error);
     return { data: null, error: "حدث خطأ أثناء رفع الصورة" };
   }

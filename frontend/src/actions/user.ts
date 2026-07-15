@@ -51,7 +51,8 @@ export async function addChild(data: {
     const response = await apiClient.post("/api/parents/children/create/", data);
     revalidatePath("/dashboard/my-children");
     return { data: response.data, error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (isAxiosError(error)) {
       return {
         data: null,
@@ -73,7 +74,8 @@ export async function updateChild(id: string, data: {
     const response = await apiClient.patch(`/api/parents/children/${id}/update/`, data);
     revalidatePath("/dashboard/my-children");
     return { data: response.data, error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (isAxiosError(error)) {
       return {
         data: null,
@@ -89,7 +91,8 @@ export async function deleteChild(id: string) {
     const apiClient = await getAuthApiClient();
     await apiClient.delete(`/api/parents/children/${id}/delete/`);
     return { error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (isAxiosError(error)) {
       return {
         error: error.response?.data ?? "حدث خطأ أثناء حذف الطفل",
@@ -104,7 +107,8 @@ export async function getChildById(id: string): Promise<ParentChildDetail | null
     const apiClient = await getAuthApiClient();
     const { data } = await apiClient.get<ParentChildDetail>(`/api/parents/children/${id}/`);
     return data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Failed to fetch child details:", error);
     return null;
   }
@@ -119,7 +123,8 @@ export async function getChildEnrollments(childId: string): Promise<EnrollmentLi
 
     const results = Array.isArray(data) ? data : data.results;
     return results;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Failed to load child enrollments:", error);
     return [];
   }
@@ -134,7 +139,8 @@ export async function getChildEnrollmentRequests(childId: string): Promise<Enrol
 
     const results = Array.isArray(data) ? data : data.results;
     return results;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Failed to load child enrollment requests:", error);
     return [];
   }
@@ -157,7 +163,8 @@ export async function getChildCourses(childId: string) {
     }));
 
     return myCourses;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Failed to load child courses:", error);
     return [];
   }
@@ -193,7 +200,8 @@ export async function getInstructorById(id: string | number) {
     const apiClient = await getAuthApiClient();
     const { data } = await apiClient.get(`/api/users/instructors/${id}/`);
     return data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Failed to fetch instructor details:", error);
     return null;
   }

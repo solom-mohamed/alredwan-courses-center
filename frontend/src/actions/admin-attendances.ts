@@ -78,7 +78,8 @@ export async function getAttendances(params?: {
     >("/api/attendance/all/", { params: apiParams });
 
     return data.results;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     const errMssg = "Failed to get attendances: ";
 
     if (isAxiosError(error)) {
@@ -100,7 +101,8 @@ export async function markAbsent(id: number) {
     );
 
     return data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     const errMssg = "Failed to mark attendance as absent: ";
 
     if (isAxiosError(error)) {
@@ -127,7 +129,8 @@ export async function rateAttendance(
     );
 
     return data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     const errMssg = "Failed to rate attendance: ";
 
     if (isAxiosError(error)) {
@@ -148,7 +151,8 @@ export async function generateAttendances(startDate: string, endDate: string) {
       end_date: endDate,
     });
     return { success: true, data };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     let message = "Failed to generate attendances";
     if (isAxiosError(error)) {
       message = error.response?.data?.error || error.response?.data?.detail || message;

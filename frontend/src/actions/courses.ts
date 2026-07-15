@@ -17,7 +17,8 @@ export async function getPublicCourses(): Promise<CourseListItem[]> {
     >("/api/courses/?page_size=100");
 
     return Array.isArray(data) ? data : data.results;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Failed to load public courses:", error);
     return [];
   }

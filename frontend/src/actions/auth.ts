@@ -77,7 +77,8 @@ export async function getServerJwtToken() {
         jwt_access_token: string;
         jwt_refresh_token: string;
       };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Token Decryption Failed:", error);
     return null;
   }
@@ -89,7 +90,8 @@ export async function changePassword(data: any) {
     const apiClient = await getAuthApiClient();
     await apiClient.post("/auth/users/set_password/", data);
     return { error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (axios.isAxiosError(error)) {
       return {
         error: error.response?.data ?? "حدث خطأ أثناء تغيير كلمة المرور",
@@ -103,7 +105,8 @@ export async function resetPassword(data: { phone_number1: string }) {
   try {
     await publicApiClient.post("/auth/users/reset_password/", data);
     return { error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (axios.isAxiosError(error)) {
       return {
         error: error.response?.data ?? "حدث خطأ أثناء طلب إعادة تعيين كلمة المرور",
@@ -117,7 +120,8 @@ export async function resetPasswordConfirm(data: any) {
   try {
     await publicApiClient.post("/auth/users/reset_password_confirm/", data);
     return { error: null };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     if (axios.isAxiosError(error)) {
       return {
         error: error.response?.data ?? "حدث خطأ أثناء تعيين كلمة المرور الجديدة",

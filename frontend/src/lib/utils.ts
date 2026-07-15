@@ -92,7 +92,8 @@ export function toHindiDigits(
     .replace(/[0-9]/g, (digit) => westernToHindiDigits[digit] || digit);
 }
 
-export function formatDate(date: Date) {
+export function formatDate(dateStr: Date | string) {
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
   return date.toLocaleDateString("ar-EG", {
     day: "2-digit",
     month: "long",

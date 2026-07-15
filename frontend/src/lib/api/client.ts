@@ -4,7 +4,7 @@ import { getServerJwtToken } from "@/actions/auth";
 import axios, { type AxiosInstance } from "axios";
 
 const baseConfig = {
-  baseURL: process.env.REST_API_URL,
+  baseURL: process.env.REST_API_URL || process.env.NEXT_PUBLIC_API_URL,
 };
 
 export const publicApiClient: AxiosInstance = axios.create(baseConfig);

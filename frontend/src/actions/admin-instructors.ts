@@ -24,7 +24,8 @@ export async function getInstructorDetail(instructorId: string | number) {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Error fetching instructor detail:", error);
     return null;
   }
@@ -49,7 +50,8 @@ export async function getSupervisorSchedules(instructorId: string | number) {
 
     const data = await response.json();
     return data.results || data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Error fetching supervisor schedules:", error);
     return [];
   }
@@ -74,7 +76,8 @@ export async function getInstructorAttendanceHistory(instructorId: string | numb
 
     const data = await response.json();
     return data.results || data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Error fetching instructor attendance history:", error);
     return [];
   }
@@ -88,7 +91,8 @@ export async function getInstructors(): Promise<Instructor[]> {
     const apiClient = await getAuthApiClient();
     const { data } = await apiClient.get("/api/users/instructors/?page_size=100");
     return unwrapPaginated(data) as Instructor[];
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
     console.error("Error fetching instructors:", error);
     return [];
   }

@@ -5,6 +5,7 @@ import OverviewIcon from "@/components/icons/OverviewIcon";
 import PanelsIcon from "@/components/icons/PanelsIcon";
 import PeopleIcon from "@/components/icons/PeopleIcon";
 import PersonIcon from "@/components/icons/PersonIcon";
+import MosqueIcon from "@/components/icons/MosqueIcon";
 import { UserEntity } from "@/types/auth";
 import { ReactNode } from "react";
 
@@ -46,6 +47,11 @@ const roleMap: Record<UserEntity["role"], DashboardNavItem[]> = {
       href: "/dashboard/courses",
       icon: <AllCoursesIcon />,
     },
+    {
+      label: "ذكريات المسجد",
+      href: "/dashboard/memories",
+      icon: <MosqueIcon />,
+    },
   ],
 
   supervisor: [
@@ -63,6 +69,11 @@ const roleMap: Record<UserEntity["role"], DashboardNavItem[]> = {
       label: "المعلمون",
       href: "/dashboard/instructors",
       icon: <PeopleIcon />,
+    },
+    {
+      label: "ذكريات المسجد",
+      href: "/dashboard/memories",
+      icon: <MosqueIcon />,
     },
   ],
 
@@ -90,6 +101,11 @@ const roleMap: Record<UserEntity["role"], DashboardNavItem[]> = {
           label: "الحجوزات",
         },
       ],
+    },
+    {
+      label: "ذكريات المسجد",
+      href: "/dashboard/memories",
+      icon: <MosqueIcon />,
     },
     {
       label: "الملف الشخصي",
@@ -130,6 +146,11 @@ const roleMap: Record<UserEntity["role"], DashboardNavItem[]> = {
       icon: <AllCoursesIcon />,
     },
     {
+      label: "ذكريات المسجد",
+      href: "/dashboard/memories",
+      icon: <MosqueIcon />,
+    },
+    {
       label: "الملف الشخصي",
       href: "/dashboard/profile",
       icon: <PersonIcon />,
@@ -166,6 +187,11 @@ const roleMap: Record<UserEntity["role"], DashboardNavItem[]> = {
       label: "جميع الدورات",
       href: "/dashboard/courses",
       icon: <AllCoursesIcon />,
+    },
+    {
+      label: "ذكريات المسجد",
+      href: "/dashboard/memories",
+      icon: <MosqueIcon />,
     },
     {
       label: "الملف الشخصي",
