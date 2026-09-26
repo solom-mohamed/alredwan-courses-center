@@ -6,6 +6,7 @@ import type { PaginatedResponse } from "@/types/config";
 import type {
   LandingPageCourse,
   LandingPageInstructor,
+  LandingVideo,
 } from "@/types/entities";
 
 export const getLandingPageInstructors = cache(
@@ -39,3 +40,17 @@ export const getLandingPageCourses = cache(
     );
   },
 );
+
+export const getLandingVideos = cache(async (): Promise<LandingVideo[]> => {
+  return apiRequest(
+    "Failed to load landing videos:",
+    async () => {
+      const { data } = await publicApiClient.get<
+        PaginatedResponse<LandingVideo> | LandingVideo[]
+      >("/api/landing/videos/");
+
+      return unwrapPaginated(data);
+    },
+    [],
+  );
+});

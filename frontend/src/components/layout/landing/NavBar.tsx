@@ -34,6 +34,9 @@ export default async function NavBar() {
         <NavLink variant="landing" href="/#activities">
           الأنشطة
         </NavLink>
+        <NavLink variant="landing" href="/#videos">
+          الفيديوهات
+        </NavLink>
         <NavLink variant="landing" href="/#contact-us">
           تواصل معنا
         </NavLink>

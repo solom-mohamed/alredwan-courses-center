@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/parents/', include('parents.urls')),
     path('api/memories/', include('memories.urls')),
     path('api/online-courses/', include('courses_online.urls')),
+    path('api/landing/', include('core.urls')),
 ]
 
 

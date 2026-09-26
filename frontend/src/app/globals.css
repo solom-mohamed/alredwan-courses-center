@@ -51,11 +51,19 @@
 }
 
 @utility heading-2 {
-  @apply text-heading-2 text-shadow-soft font-bold text-olive-500;
+  @apply text-heading-2 text-shadow-soft text-olive-500 font-bold;
 }
 
 @utility title-block {
   @apply [&>h2]:heading-2 text-center [&>p]:mb-22 [&>p]:max-w-3xl [&>p]:text-[2rem] [&>p]:text-gray-600;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @utility container-wide {
@@ -63,11 +71,11 @@
 }
 
 @utility dashboard-greeting {
-  @apply font-medad text-6xl text-olive-700;
+  @apply font-medad text-olive-700 text-6xl;
 }
 
 @utility dashboard-section-title {
-  @apply text-5xl font-bold text-olive-700;
+  @apply text-olive-700 text-5xl font-bold;
 }
 
 @custom-variant desktop-sm (@media (max-width: 1600px));

@@ -8,3 +8,4 @@ export * from "./memories";
 export * from "./people";
 export * from "./staff-attendance";
 export * from "./online-courses";
+export * from "./landing-videos";
