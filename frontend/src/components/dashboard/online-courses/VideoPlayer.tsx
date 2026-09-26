@@ -95,13 +95,25 @@ function getBunnyEmbedUrl(url: URL): string | null {
  * receives an arbitrary URL.
  */
 export function getEmbedUrl(lecture: VideoLectureItem): string | null {
-  const raw = lecture.video_url?.trim();
+  return getEmbedUrlForSource(lecture.video_url ?? "", lecture.video_platform);
+}
+
+/**
+ * Same allow-list for any video link (landing clips, materials…): returns an
+ * embeddable player URL for YouTube / Vimeo / Bunny, or `null` for anything
+ * else so callers can fall back to a native `<video>` or a placeholder.
+ */
+export function getEmbedUrlForSource(
+  rawSource: string,
+  platform?: VideoLectureItem["video_platform"],
+): string | null {
+  const raw = rawSource.trim();
   if (!raw) return null;
 
   const url = parseUrl(raw);
   if (!url) return null;
 
-  switch (lecture.video_platform) {
+  switch (platform) {
     case "youtube":
       return getYouTubeEmbedUrl(url);
     case "vimeo":

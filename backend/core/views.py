@@ -59,3 +59,25 @@ def font_diagnostic(request):
             status['font_directories'][font_dir] = {'exists': False}
     
     return JsonResponse(status, json_dumps_params={'ensure_ascii': False, 'indent': 2})
+
+# ---------------------------------------------------------------------------
+# Landing page videos
+# ---------------------------------------------------------------------------
+from rest_framework import generics  # noqa: E402
+from rest_framework.permissions import AllowAny  # noqa: E402
+
+from .models import LandingVideo  # noqa: E402
+from .serializers import LandingVideoSerializer  # noqa: E402
+
+
+class LandingVideoListView(generics.ListAPIView):
+    """Public list of the active landing page clips, in display order.
+
+    GET /api/landing/videos/
+    """
+    permission_classes = [AllowAny]
+    serializer_class = LandingVideoSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return LandingVideo.objects.filter(is_active=True)
