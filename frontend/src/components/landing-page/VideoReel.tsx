@@ -65,6 +65,9 @@ export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
             speed={650}
             grabCursor
             slideToClickedSlide
+            // Never lock the reel: on very wide screens all clips fit in the
+            // frame, and Swiper would otherwise disable arrows and dragging.
+            watchOverflow={false}
             keyboard={{ enabled: true }}
             a11y={{
               containerMessage: "مقاطع من داخل الواحة",
@@ -72,7 +75,7 @@ export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
               nextSlideMessage: "المقطع التالي",
               slideLabelMessage: "المقطع {{index}} من {{slidesLength}}",
             }}
-            className="py-4!"
+            className="mx-auto max-w-[120rem] py-4!"
           >
             {videos.map((video, index) => (
               <SwiperSlide
