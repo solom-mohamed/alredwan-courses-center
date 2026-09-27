@@ -2,7 +2,11 @@
 
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useIsClient } from "usehooks-ts";
+import type { Swiper as SwiperInstance } from "swiper";
+import { A11y, EffectCoverflow, Keyboard, Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import VideoLightbox, {
   isDirectVideoFile,
 } from "@/components/landing-page/VideoLightbox";
@@ -10,71 +14,21 @@ import { cn, formatDuration, toHindiDigits } from "@/lib/utils";
 import type { LandingVideo } from "@/types/entities";
 
 /**
- * A cinematic "film reel" of short clips: cards snap to the centre of a
- * horizontal strip framed by sprocket holes, the centred card comes forward,
- * uploaded clips preview silently on hover, and a click opens the player.
+ * A cinematic "film reel" of short clips: a Swiper coverflow strip framed by
+ * sprocket holes. Drag with momentum, arrows, dots and keyboard all move the
+ * reel; the centred card comes forward, uploaded clips preview silently on
+ * hover, and a click on the centred card opens the player.
  */
 export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
-  const trackRef = useRef<HTMLDivElement>(null);
+  const swiperRef = useRef<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [openVideo, setOpenVideo] = useState<LandingVideo | null>(null);
+  // Swiper reads the DOM (RTL, sizes) while rendering, so its markup only
+  // matches on the client; the server paints the first clip in the same frame.
+  const isClient = useIsClient();
 
-  // The card whose centre is closest to the strip's centre is "active".
-  const syncActive = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const centre = track.scrollLeft + track.clientWidth / 2;
-    let best = 0;
-    let bestDistance = Number.POSITIVE_INFINITY;
-    Array.from(track.children).forEach((child, index) => {
-      const el = child as HTMLElement;
-      const cardCentre = el.offsetLeft + el.offsetWidth / 2;
-      const distance = Math.abs(cardCentre - centre);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = index;
-      }
-    });
-    setActiveIndex(best);
-  }, []);
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(syncActive);
-    };
-    track.addEventListener("scroll", onScroll, { passive: true });
-    // Measure once mounted (next frame) so the first card is marked active.
-    frame = requestAnimationFrame(syncActive);
-    return () => {
-      track.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-    };
-  }, [syncActive]);
-
-  const scrollToIndex = (index: number) => {
-    const track = trackRef.current;
-    const card = track?.children[index] as HTMLElement | undefined;
-    if (!track || !card) return;
-    track.scrollTo({
-      left: card.offsetLeft + card.offsetWidth / 2 - track.clientWidth / 2,
-      behavior: "smooth",
-    });
-  };
-
-  const step = (delta: number) => {
-    const next = Math.min(videos.length - 1, Math.max(0, activeIndex + delta));
-    scrollToIndex(next);
-  };
-
-  const onKeyDown = (event: React.KeyboardEvent) => {
-    // RTL page: ArrowRight goes to the previous clip, ArrowLeft to the next.
-    if (event.key === "ArrowLeft") step(1);
-    if (event.key === "ArrowRight") step(-1);
-  };
+  const goTo = (index: number) => swiperRef.current?.slideTo(index);
+  const hasMany = videos.length > 1;
 
   return (
     <div className="relative w-full">
@@ -83,34 +37,75 @@ export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
         <FilmPerforation className="top-4" />
         <FilmPerforation className="bottom-4" />
 
-        <div
-          ref={trackRef}
-          role="listbox"
-          aria-label="مقاطع من داخل الواحة"
-          aria-activedescendant={`landing-clip-${videos[activeIndex]?.id}`}
-          tabIndex={0}
-          onKeyDown={onKeyDown}
-          className="no-scrollbar focus-visible:ring-beige-500/70 tablet:gap-6 tablet:px-[16vw] flex snap-x snap-mandatory gap-8 overflow-x-auto scroll-smooth px-[26%] py-4 outline-none focus-visible:ring-4"
-        >
-          {videos.map((video, index) => (
+        {isClient ? (
+          <Swiper
+            modules={[EffectCoverflow, Navigation, Keyboard, A11y]}
+            onSwiper={(instance) => {
+              swiperRef.current = instance;
+              // Re-measure once styles/fonts have settled so the first clip is
+              // centred even when the stylesheet arrives after the first paint.
+              requestAnimationFrame(() => {
+                instance.update();
+                instance.slideTo(0, 0);
+              });
+            }}
+            onSlideChange={(instance) => setActiveIndex(instance.activeIndex)}
+            initialSlide={0}
+            effect="coverflow"
+            coverflowEffect={{
+              rotate: 0,
+              stretch: 0,
+              depth: 160,
+              modifier: 1.4,
+              slideShadows: false,
+            }}
+            centeredSlides
+            slidesPerView="auto"
+            spaceBetween={28}
+            speed={650}
+            grabCursor
+            slideToClickedSlide
+            keyboard={{ enabled: true }}
+            a11y={{
+              containerMessage: "مقاطع من داخل الواحة",
+              prevSlideMessage: "المقطع السابق",
+              nextSlideMessage: "المقطع التالي",
+              slideLabelMessage: "المقطع {{index}} من {{slidesLength}}",
+            }}
+            className="py-4!"
+          >
+            {videos.map((video, index) => (
+              <SwiperSlide
+                key={video.id}
+                className="tablet:w-[68vw]! h-auto! w-[56rem]!"
+              >
+                <ReelCard
+                  video={video}
+                  index={index}
+                  isActive={index === activeIndex}
+                  onOpen={() => setOpenVideo(video)}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="tablet:w-[68vw] mx-auto w-[56rem] py-4">
             <ReelCard
-              key={video.id}
-              video={video}
-              index={index}
-              isActive={index === activeIndex}
-              onFocusCard={() => scrollToIndex(index)}
-              onOpen={() => setOpenVideo(video)}
+              video={videos[0]}
+              index={0}
+              isActive
+              onOpen={() => setOpenVideo(videos[0])}
             />
-          ))}
-        </div>
+          </div>
+        )}
 
-        {videos.length > 1 && (
+        {hasMany && (
           <>
             <ReelArrow
               side="start"
               label="المقطع السابق"
               disabled={activeIndex === 0}
-              onClick={() => step(-1)}
+              onClick={() => swiperRef.current?.slidePrev()}
             >
               <ChevronRight className="h-8 w-8" />
             </ReelArrow>
@@ -118,7 +113,7 @@ export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
               side="end"
               label="المقطع التالي"
               disabled={activeIndex === videos.length - 1}
-              onClick={() => step(1)}
+              onClick={() => swiperRef.current?.slideNext()}
             >
               <ChevronLeft className="h-8 w-8" />
             </ReelArrow>
@@ -127,7 +122,7 @@ export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
       </div>
 
       {/* Counter + dots */}
-      {videos.length > 1 && (
+      {hasMany && (
         <div className="mt-8 flex items-center justify-center gap-4">
           <span className="text-olive-700 text-xl font-bold tabular-nums">
             {toHindiDigits(activeIndex + 1)} / {toHindiDigits(videos.length)}
@@ -139,7 +134,7 @@ export default function VideoReel({ videos }: { videos: LandingVideo[] }) {
                 type="button"
                 aria-label={`الانتقال إلى: ${video.title}`}
                 aria-current={index === activeIndex ? "true" : undefined}
-                onClick={() => scrollToIndex(index)}
+                onClick={() => goTo(index)}
                 className={cn(
                   "h-3 rounded-full transition-all duration-300",
                   index === activeIndex
@@ -164,7 +159,7 @@ function FilmPerforation({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "tablet:inset-x-6 pointer-events-none absolute inset-x-10 h-5 rounded-sm bg-[repeating-linear-gradient(90deg,transparent_0_1.4rem,rgba(255,255,255,0.16)_1.4rem_2.8rem)]",
+        "tablet:inset-x-6 pointer-events-none absolute inset-x-10 z-10 h-5 rounded-sm bg-[repeating-linear-gradient(90deg,transparent_0_1.4rem,rgba(255,255,255,0.16)_1.4rem_2.8rem)]",
         className,
       )}
     />
@@ -204,13 +199,11 @@ function ReelCard({
   video,
   index,
   isActive,
-  onFocusCard,
   onOpen,
 }: {
   video: LandingVideo;
   index: number;
   isActive: boolean;
-  onFocusCard: () => void;
   onOpen: () => void;
 }) {
   const previewRef = useRef<HTMLVideoElement>(null);
@@ -218,9 +211,7 @@ function ReelCard({
     video.source === "upload" || isDirectVideoFile(video.video_url);
 
   const startPreview = () => {
-    const el = previewRef.current;
-    if (!el) return;
-    el.play().catch(() => undefined);
+    previewRef.current?.play().catch(() => undefined);
   };
   const stopPreview = () => {
     const el = previewRef.current;
@@ -231,21 +222,18 @@ function ReelCard({
 
   return (
     <button
-      id={`landing-clip-${video.id}`}
       type="button"
-      role="option"
-      aria-selected={isActive}
       aria-label={`تشغيل: ${video.title}`}
-      onClick={isActive ? onOpen : onFocusCard}
+      // Swiper's slideToClickedSlide centres a side card; only the centred
+      // card opens the player.
+      onClick={isActive ? onOpen : undefined}
       onMouseEnter={startPreview}
       onMouseLeave={stopPreview}
       onFocus={startPreview}
       onBlur={stopPreview}
       className={cn(
-        "group bg-olive-900 focus-visible:ring-beige-500 tablet:aspect-[4/5] tablet:w-[68vw] tablet:rounded-[0_3.5rem] relative aspect-video w-[56rem] shrink-0 snap-center overflow-hidden rounded-[0_5rem] text-start text-white shadow-2xl transition-all duration-500 ease-out focus-visible:ring-4 focus-visible:outline-none",
-        isActive
-          ? "scale-100 opacity-100"
-          : "scale-[0.86] opacity-55 hover:opacity-80",
+        "group bg-olive-900 focus-visible:ring-beige-500 tablet:aspect-[4/5] tablet:rounded-[0_3.5rem] relative block aspect-video w-full overflow-hidden rounded-[0_5rem] text-start text-white shadow-2xl transition-opacity duration-500 ease-out focus-visible:ring-4 focus-visible:outline-none",
+        isActive ? "opacity-100" : "opacity-60 hover:opacity-85",
       )}
     >
       {video.poster ? (
