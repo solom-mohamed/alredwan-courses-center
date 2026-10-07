@@ -199,25 +199,28 @@ const RatingsSection: React.FC<RatingsSectionProps> = ({
             </div>
           )}
 
-          <div className="from-olive-500 to-olive-700 rounded-3xl bg-linear-to-br p-8 text-white shadow-xl">
-            <h4 className="mobile-lg:text-4xl mb-4 text-3xl font-bold">
-              لماذا تقييمك مهم؟
-            </h4>
-            <ul className="mobile-lg:text-3xl space-y-3 text-2xl opacity-90">
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
-                يساعد المعلمين على تحسين أسلوب الشرح
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
-                يوجه الطلاب الآخرين لاختيار الكورس المناسب
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
-                يساهم في رفع جودة المركز التعليمي ككل
-              </li>
-            </ul>
-          </div>
+          {/* Only pitch rating to viewers who can rate (or can after signing in). */}
+          {!cannotRateReason && (
+            <div className="from-olive-500 to-olive-700 rounded-3xl bg-linear-to-br p-8 text-white shadow-xl">
+              <h4 className="mobile-lg:text-4xl mb-4 text-3xl font-bold">
+                لماذا تقييمك مهم؟
+              </h4>
+              <ul className="mobile-lg:text-3xl space-y-3 text-2xl opacity-90">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                  يساعد المعلمين على تحسين أسلوب الشرح
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                  يوجه الطلاب الآخرين لاختيار الكورس المناسب
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white" />
+                  يساهم في رفع جودة المركز التعليمي ككل
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </section>
