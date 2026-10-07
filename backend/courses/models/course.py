@@ -37,6 +37,11 @@ class Weekday(models.IntegerChoices):
     THURSDAY = 5, _('Thursday')
     FRIDAY = 6, _('Friday')
 
+    @classmethod
+    def of(cls, day) -> int:
+        """Weekday value (Sat=0..Fri=6) of a date; Python's weekday() is Mon=0..Sun=6."""
+        return (day.weekday() + 2) % 7
+
 
 class Season(models.Model):
     """

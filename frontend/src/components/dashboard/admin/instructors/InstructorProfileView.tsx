@@ -78,7 +78,7 @@ export default function InstructorProfileView({
           </div>
 
           <Link
-            href={`/dashboard/todays-staff-attendances?instructor=${instructor.id}`}
+            href={`/dashboard/all-attendances?instructor=${instructor.id}`}
             className="inline-flex items-center justify-center w-full md:w-auto max-[1000px]:w-full gap-8 bg-olive-600 text-white px-20 py-10 rounded-xl hover:bg-olive-700 transition-colors font-bold shadow-sm"
           >
             عرض سجل الحضور الكامل

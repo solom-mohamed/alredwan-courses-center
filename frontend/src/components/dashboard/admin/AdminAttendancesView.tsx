@@ -342,8 +342,10 @@ function FilterBar({
   onGenerate: () => void;
 }) {
   const { mutateSearchParams, searchParams } = useMutateSearchParams();
+  // Empty when one instructor's full history is shown (no date filter).
   const dateParam =
-    searchParams.get("date") || format(new Date(), "yyyy-MM-dd");
+    searchParams.get("date") ||
+    (searchParams.get("instructor") ? "" : format(new Date(), "yyyy-MM-dd"));
   const [localDate, setLocalDate] = useState(dateParam);
   const [prevDateParam, setPrevDateParam] = useState(dateParam);
 
@@ -406,6 +408,7 @@ function FilterBar({
             }}
             onBlur={() => {
               // Reset to today if cleared, or sync with URL if different and valid
+              if (!localDate && !dateParam) return;
               if (!localDate) {
                 const today = format(new Date(), "yyyy-MM-dd");
                 setLocalDate(today);

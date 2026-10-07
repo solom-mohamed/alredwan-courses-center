@@ -31,19 +31,19 @@ const enrollmentStatusMap: Record<
     color: cn("bg-green-300"),
   },
   completed: {
-    label: "نشط",
+    label: "مكتمل",
     color: cn("bg-blue-300"),
   },
   dropped: {
-    label: "نشط",
+    label: "ملغى",
     color: cn("bg-gray-300"),
   },
   refunded: {
-    label: "نشط",
+    label: "مسترد",
     color: cn("bg-purple-300"),
   },
   suspended: {
-    label: "نشط",
+    label: "معلق",
     color: cn("bg-amber-300"),
   },
 };

@@ -36,15 +36,26 @@ import TimePickerPopover from "@/components/ui/TimePickerPopover";
 import { cn, formatTime, toHindiDigits } from "@/lib/utils";
 import AddScheduleModal from "./AddScheduleModal";
 
+// Backend Weekday enum: Saturday=0 … Friday=6 (courses.models.Weekday).
 const DAYS = [
-  { label: "S", value: 6, full: "السبت" },
-  { label: "S", value: 0, full: "الأحد" },
-  { label: "M", value: 1, full: "الاثنين" },
-  { label: "T", value: 2, full: "الثلاثاء" },
-  { label: "W", value: 3, full: "الأربعاء" },
-  { label: "T", value: 4, full: "الخميس" },
-  { label: "F", value: 5, full: "الجمعة" },
+  { label: "S", value: 0, full: "السبت" },
+  { label: "S", value: 1, full: "الأحد" },
+  { label: "M", value: 2, full: "الاثنين" },
+  { label: "T", value: 3, full: "الثلاثاء" },
+  { label: "W", value: 4, full: "الأربعاء" },
+  { label: "T", value: 5, full: "الخميس" },
+  { label: "F", value: 6, full: "الجمعة" },
 ];
+
+/** "06:30 pm" (TimePickerPopover) or "18:30:00" (API) → minutes since midnight. */
+const toMinutes = (time: string) => {
+  const [clock, period] = time.trim().toLowerCase().split(" ");
+  const [h, m] = clock.split(":").map(Number);
+  let hours = h % 12;
+  if (!period) hours = h;
+  else if (period === "pm") hours += 12;
+  return hours * 60 + (m || 0);
+};
 
 export default function SeasonSchedulesView({
   initialSchedules,
@@ -59,8 +70,9 @@ export default function SeasonSchedulesView({
   const [schedules, setSchedules] = useState<WeeklySchedule[]>(initialSchedules);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [startTime, setStartTime] = useState("06:00 pm");
-  const [endTime, setEndTime] = useState("11:00 pm");
+  // null = no time filter; the pickers only narrow the table once used.
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"name" | "time">("time");
   const [filterType, setFilterType] = useState<"all" | "lecture" | "supervision">("all");
 
@@ -77,8 +89,12 @@ export default function SeasonSchedulesView({
 
       const matchesDay = selectedDay === null || s.weekday === selectedDay;
       const matchesType = filterType === "all" || s.type === filterType;
+      // Keep schedules that overlap the chosen window.
+      const matchesTime =
+        (!startTime || toMinutes(s.end_time) > toMinutes(startTime)) &&
+        (!endTime || toMinutes(s.start_time) < toMinutes(endTime));
 
-      return matchesSearch && matchesDay && matchesType;
+      return matchesSearch && matchesDay && matchesType && matchesTime;
     });
 
     result.sort((a, b) => {
@@ -89,7 +105,7 @@ export default function SeasonSchedulesView({
     });
 
     return result;
-  }, [schedules, searchQuery, selectedDay, filterType, sortBy]);
+  }, [schedules, searchQuery, selectedDay, filterType, sortBy, startTime, endTime]);
 
   const confirmDelete = async () => {
     if (scheduleToDelete !== null) {
@@ -195,11 +211,11 @@ export default function SeasonSchedulesView({
             <div className="flex items-center gap-2">
               <span className="text-[1.6rem] text-gray-400">من</span>
               <TimePickerPopover
-                value={startTime}
+                value={startTime ?? "06:00 pm"}
                 onChange={setStartTime}
                 trigger={
                   <div className="bg-[#F3F3F5] px-6 py-2 rounded-lg text-[1.8rem] font-bold text-gray-700 min-w-[120px] text-center shadow-inner cursor-pointer hover:bg-gray-200 transition-colors">
-                    {startTime}
+                    {startTime ?? "--:--"}
                   </div>
                 }
               />
@@ -207,15 +223,27 @@ export default function SeasonSchedulesView({
             <div className="flex items-center gap-2">
               <span className="text-[1.6rem] text-gray-400">الي</span>
               <TimePickerPopover
-                value={endTime}
+                value={endTime ?? "11:00 pm"}
                 onChange={setEndTime}
                 trigger={
                   <div className="bg-olive-300 px-6 py-2 rounded-lg text-[1.8rem] font-bold text-white min-w-[120px] text-center shadow-md cursor-pointer hover:bg-olive-400 transition-colors">
-                    {endTime}
+                    {endTime ?? "--:--"}
                   </div>
                 }
               />
             </div>
+            {(startTime || endTime) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStartTime(null);
+                  setEndTime(null);
+                }}
+                className="text-[1.6rem] font-semibold text-red-500 hover:underline"
+              >
+                مسح
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4 ml-10">

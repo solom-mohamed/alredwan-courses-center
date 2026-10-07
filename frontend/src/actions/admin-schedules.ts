@@ -166,14 +166,15 @@ export async function getAllSchedules(params?: {
       schedules.push({
         id: s.id,
         weekday: s.day_of_week,
+        // Backend Weekday enum: Saturday=0 … Friday=6.
         weekday_display: [
+          "السبت",
           "الأحد",
           "الاثنين",
           "الثلاثاء",
           "الأربعاء",
           "الخميس",
           "الجمعة",
-          "السبت",
         ][s.day_of_week],
         start_time: s.start_time,
         end_time: s.end_time,

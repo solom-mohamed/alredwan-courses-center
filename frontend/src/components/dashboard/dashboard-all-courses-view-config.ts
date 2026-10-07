@@ -93,11 +93,20 @@ export const sortConfig: DataViewSortConfig<AllCoursesViewItem> = {
   },
 };
 
+const STATIC_FILTER_KEYS = ["ongoing", "upcoming", "ended", "open", "full"];
+
 export const getAllCoursesFilterConfig = (
   courses: AllCoursesViewItem[],
+  /** The `filter` URL param — kept as an option even when the current page has no course from that season. */
+  activeFilter?: string | null,
 ): DataViewFilterConfig => {
+  const seasonNames = courses.map((course) => course.season_name);
+  if (activeFilter && !STATIC_FILTER_KEYS.includes(activeFilter)) {
+    seasonNames.push(activeFilter);
+  }
+
   const seasonFilters = Array.from(
-    new Set(courses.map((course) => course.season_name).filter(Boolean)),
+    new Set(seasonNames.filter(Boolean)),
   ).reduce<DataViewFilterConfig>((acc, seasonName) => {
     acc[seasonName] = {
       key: "season_name",

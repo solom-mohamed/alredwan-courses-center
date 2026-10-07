@@ -6,12 +6,13 @@ import Button from "@/components/ui/Button";
 import { toast } from "react-hot-toast";
 import { Loader2, Send } from "lucide-react";
 import {
+  type InstructorRatingCourse,
   rateCourse,
   rateInstructor,
   rateOnlineCourse,
 } from "@/actions/ratings";
 import { getInstructorCourses } from "@/actions/courses";
-import type { CourseListItem } from "@/types/entities";
+import { getInstructorOnlineCourses } from "@/actions/online-courses";
 import { cn } from "@/lib/utils";
 
 interface RatingFormProps {
@@ -35,8 +36,12 @@ const RatingForm: React.FC<RatingFormProps> = ({
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [courses, setCourses] = useState<CourseListItem[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<number | "">("");
+  // Physical and online courses share one <select>; values are prefixed
+  // ("course:12" / "online:<uuid>") so the two id spaces don't collide.
+  const [courses, setCourses] = useState<{ value: string; name: string }[]>(
+    [],
+  );
+  const [selectedCourse, setSelectedCourse] = useState("");
   const [loadingCourses, setLoadingCourses] = useState(false);
 
   useEffect(() => {
@@ -44,12 +49,23 @@ const RatingForm: React.FC<RatingFormProps> = ({
       const fetchCourses = async () => {
         setLoadingCourses(true);
         try {
-          const fetchedCourses = await getInstructorCourses(String(id), {
-            page_size: 100,
-          });
-          setCourses(fetchedCourses.results);
-          if (fetchedCourses.results.length > 0) {
-            setSelectedCourseId(fetchedCourses.results[0].id);
+          const [physical, online] = await Promise.all([
+            getInstructorCourses(String(id), { page_size: 100 }),
+            getInstructorOnlineCourses(id),
+          ]);
+          const options = [
+            ...physical.results.map((c) => ({
+              value: `course:${c.id}`,
+              name: c.name,
+            })),
+            ...online.map((c) => ({
+              value: `online:${c.id}`,
+              name: `${c.name} (دورة إلكترونية)`,
+            })),
+          ];
+          setCourses(options);
+          if (options.length > 0) {
+            setSelectedCourse(options[0].value);
           }
         } catch (error) {
           console.error("Error fetching instructor courses:", error);
@@ -73,15 +89,22 @@ const RatingForm: React.FC<RatingFormProps> = ({
         result = await rateOnlineCourse(id as string, rating, feedback);
       } else {
         const finalInstructorId = instructorId || Number(id);
-        const finalCourseId = courseId || Number(selectedCourseId);
-        if (!finalInstructorId || !finalCourseId) {
+        const [kind, selectedId] = selectedCourse.split(":");
+        const ratedCourse: InstructorRatingCourse | null = courseId
+          ? { course: courseId }
+          : kind === "online" && selectedId
+            ? { online_course: selectedId }
+            : kind === "course" && Number(selectedId)
+              ? { course: Number(selectedId) }
+              : null;
+        if (!finalInstructorId || !ratedCourse) {
           toast.error("يرجى اختيار الدورة التدريبية");
           setLoading(false);
           return;
         }
         result = await rateInstructor(
           finalInstructorId,
-          finalCourseId,
+          ratedCourse,
           rating,
           feedback,
         );
@@ -137,8 +160,8 @@ const RatingForm: React.FC<RatingFormProps> = ({
             </div>
           ) : (
             <select
-              value={selectedCourseId}
-              onChange={(e) => setSelectedCourseId(Number(e.target.value))}
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
               required
               className="focus:ring-primary/20 focus:border-primary mt-2 w-full rounded-2xl border border-gray-200 bg-white p-6 text-2xl transition-all outline-none focus:ring-2"
             >
@@ -146,7 +169,7 @@ const RatingForm: React.FC<RatingFormProps> = ({
                 اختر الدورة
               </option>
               {courses.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.value} value={c.value}>
                   {c.name}
                 </option>
               ))}

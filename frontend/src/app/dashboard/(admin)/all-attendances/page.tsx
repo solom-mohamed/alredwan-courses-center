@@ -7,8 +7,11 @@ export default async function Page(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
+  // Opened from an instructor's profile ("سجل الحضور الكامل"): show that
+  // instructor's whole history unless a date is picked.
   const date =
-    (searchParams.date as string) || format(new Date(), "yyyy-MM-dd");
+    (searchParams.date as string) ||
+    (searchParams.instructor ? undefined : format(new Date(), "yyyy-MM-dd"));
 
   const [user, attendances] = await Promise.all([
     getUser(),
@@ -33,7 +36,7 @@ export default async function Page(props: {
         <div className="flex items-end justify-between max-[1000px]:flex-col max-[1000px]:items-start max-[1000px]:gap-2">
           <span>سجل الحضور والغياب</span>
           <span className="text-2xl text-gray-400 max-[1000px]:text-lg">
-            التاريخ: {date}
+            التاريخ: {date ?? "كل التواريخ"}
           </span>
         </div>
       </div>

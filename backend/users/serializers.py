@@ -243,8 +243,9 @@ class InstructorRatingSerializer(serializers.Serializer):
     rater_type = serializers.SerializerMethodField()
 
     def get_course_name(self, obj):
-        """Get the course name for this rating"""
-        return obj.course.name if obj.course else None
+        """Get the course (physical or online) name for this rating"""
+        course = obj.course or obj.online_course
+        return course.name if course else None
 
     def get_rater_name(self, obj):
         """Get the name of the person who gave the rating"""
@@ -271,59 +272,79 @@ class InstructorRatingDetailSerializer(serializers.Serializer):
     ratings = serializers.DictField(read_only=True)
 
 
+def _validate_instructor_rating_course(data, instructor, enrollments, error_message):
+    """
+    Shared checks for instructor ratings: exactly one of ``course`` /
+    ``online_course`` is given, it is taught by ``instructor``, and the rater
+    (``enrollments``, already narrowed to the student or the parent's
+    children) is enrolled in it.
+    """
+    course = data.get('course')
+    online_course = data.get('online_course')
+    if bool(course) == bool(online_course):
+        raise serializers.ValidationError("يرجى اختيار الدورة التدريبية.")
+
+    if course:
+        enrolled = enrollments.filter(course=course, course__instructor=instructor)
+    else:
+        enrolled = enrollments.filter(
+            online_course=online_course, online_course__instructor=instructor)
+    if not enrolled.exists():
+        raise serializers.ValidationError(error_message)
+
+
 class StudentInstructorRateSerializer(serializers.ModelSerializer):
     """Serializer for students to rate instructors"""
     class Meta:
         model = StudentInstructorRating
-        fields = ['course', 'rating', 'feedback']
+        fields = ['course', 'online_course', 'rating', 'feedback']
 
     def validate(self, data):
         user = self.context['request'].user
         if user.role != 'student':
             raise serializers.ValidationError("هذا الحساب ليس حساب طالب.")
-            
+
         student = getattr(user, 'student_profile', None)
         if not student:
             raise serializers.ValidationError("لم يتم العثور على ملف تعريف طالب.")
-            
-        instructor = self.context['instructor']
-        course = data['course']
-        
-        # Check if student is enrolled in the course taught by this instructor
+
+        # The student must be enrolled in a course (physical or online) taught by this instructor
         from enrollments_payments.models import Enrollment
-        if not Enrollment.objects.filter(student=student, course=course, course__instructor=instructor).exists():
-            raise serializers.ValidationError("يجب أن تكون مشتركاً في دورة يقدمها هذا المعلم لتتمكن من تقييمه.")
-            
+        _validate_instructor_rating_course(
+            data,
+            self.context['instructor'],
+            Enrollment.objects.filter(student=student),
+            "يجب أن تكون مشتركاً في دورة يقدمها هذا المعلم لتتمكن من تقييمه.",
+        )
         return data
 
 class ParentInstructorRateSerializer(serializers.ModelSerializer):
     """Serializer for parents to rate instructors"""
     class Meta:
         model = ParentInstructorRating
-        fields = ['course', 'rating', 'feedback']
+        fields = ['course', 'online_course', 'rating', 'feedback']
 
     def validate(self, data):
         user = self.context['request'].user
         if user.role != 'parent':
             raise serializers.ValidationError("هذا الحساب ليس حساب ولي أمر.")
-            
+
         parent = getattr(user, 'parent_profile', None)
         if not parent:
             raise serializers.ValidationError("لم يتم العثور على ملف تعريف ولي أمر.")
-            
-        instructor = self.context['instructor']
-        course = data['course']
-        
-        # Check if parent has a child enrolled in the course taught by this instructor
+
+        # A child of this parent must be enrolled in a course (physical or online) taught by this instructor
         from enrollments_payments.models import Enrollment
         from parents.models import Child
-        
-        # Get parent's children
+
         child_ids = list(Child.objects.filter(primary_parent=parent).values_list('id', flat=True))
         extra_child_ids = list(parent.extra_children.values_list('child_id', flat=True))
         all_child_ids = set(child_ids + extra_child_ids)
-        
-        if not Enrollment.objects.filter(child_id__in=all_child_ids, course=course, course__instructor=instructor).exists():
-            raise serializers.ValidationError("يجب أن يكون أحد أبنائك مشتركاً في دورة يقدمها هذا المعلم لتتمكن من تقييمه.")
-            
+
+        _validate_instructor_rating_course(
+            data,
+            self.context['instructor'],
+            Enrollment.objects.filter(child_id__in=all_child_ids),
+            "يجب أن يكون أحد أبنائك مشتركاً في دورة يقدمها هذا المعلم لتتمكن من تقييمه.",
+        )
         return data

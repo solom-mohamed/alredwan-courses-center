@@ -4,6 +4,10 @@ import {
   getMyEnrollments,
 } from "@/actions/enrollments";
 import { getParentChildren, type ParentChildDetail } from "@/actions/user";
+import {
+  NOT_ENROLLED_CANNOT_RATE_MESSAGE,
+  STAFF_CANNOT_RATE_MESSAGE,
+} from "@/lib/rating-access";
 import type { UserEntity } from "@/types/auth";
 import type { EnrollmentRequestListItem } from "@/types/entities";
 
@@ -126,4 +130,14 @@ export async function getCourseEnrollmentState({
     activeEnrollmentRequest,
     purchaseState,
   };
+}
+
+/** Why the (always signed-in) dashboard viewer can't rate this course, if so. */
+export function getDashboardCannotRateReason(
+  enrollment: CourseEnrollmentState,
+): string | undefined {
+  if (enrollment.hasActiveEnrollment) return undefined;
+  return enrollment.isEnrollable
+    ? NOT_ENROLLED_CANNOT_RATE_MESSAGE
+    : STAFF_CANNOT_RATE_MESSAGE;
 }

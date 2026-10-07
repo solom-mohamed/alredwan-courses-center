@@ -83,7 +83,7 @@ export async function getInstructorEnrollmentsByCourseId(courseId: string) {
       const apiClient = await getAuthApiClient();
       const { data } = await apiClient.get<
         PaginatedResponse<InstructorEnrollmentListItem>
-      >(`/api/instructor/courses/${courseId}/enrollments?page_size=100`);
+      >(`/api/instructor/courses/${courseId}/enrollments/?page_size=100`);
 
       return data.results;
     },

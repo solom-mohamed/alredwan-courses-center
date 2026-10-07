@@ -40,6 +40,9 @@ export interface CourseQueryParams {
   start_date__lte?: string;
   ordering?: string;
   is_active?: boolean;
+  state?: string;
+  availability?: string;
+  season_name?: string;
 }
 
 export async function getPublicCourses(

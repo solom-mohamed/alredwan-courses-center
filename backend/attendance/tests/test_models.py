@@ -219,7 +219,7 @@ class InstructorAttendanceModelTest(BaseTestCase):
         """Test creating an attendance record for supervision"""
         schedule = SupervisorSchedule.objects.create(
             instructor=self.supervisor,
-            day_of_week=timezone.localdate().weekday(),
+            day_of_week=Weekday.of(timezone.localdate()),
             start_time=time(8, 0),
             end_time=time(14, 0)
         )
@@ -349,7 +349,7 @@ class CheckInCheckOutTest(BaseTestCase):
         """Test marking an instructor as checked in (on time)"""
         schedule = SupervisorSchedule.objects.create(
             instructor=self.supervisor,
-            day_of_week=timezone.localdate().weekday(),
+            day_of_week=Weekday.of(timezone.localdate()),
             start_time=(timezone.localtime() + timedelta(minutes=30)
                         ).time(),  # 30 min from now
             end_time=(timezone.localtime() + timedelta(hours=6)).time(),
@@ -380,7 +380,7 @@ class CheckInCheckOutTest(BaseTestCase):
         past_time = (timezone.localtime() - timedelta(minutes=30)).time()
         schedule = SupervisorSchedule.objects.create(
             instructor=self.supervisor,
-            day_of_week=timezone.localdate().weekday(),
+            day_of_week=Weekday.of(timezone.localdate()),
             start_time=past_time,
             end_time=(timezone.localtime() + timedelta(hours=5)).time(),
             grace_period_minutes=15
@@ -468,7 +468,7 @@ class UniqueConstraintTest(BaseTestCase):
         # Create supervision attendance
         schedule = SupervisorSchedule.objects.create(
             instructor=self.instructor,
-            day_of_week=today.weekday(),
+            day_of_week=Weekday.of(today),
             start_time=time(8, 0),
             end_time=time(14, 0)
         )
@@ -497,7 +497,7 @@ class AttendanceTypeValidationTest(BaseTestCase):
         """Test that lecture attendance cannot have a schedule attached"""
         schedule = SupervisorSchedule.objects.create(
             instructor=self.instructor,
-            day_of_week=timezone.localdate().weekday(),
+            day_of_week=Weekday.of(timezone.localdate()),
             start_time=time(8, 0),
             end_time=time(14, 0)
         )

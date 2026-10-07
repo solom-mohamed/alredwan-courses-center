@@ -4,7 +4,6 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as _
 
 from .models.parent import Child, Parent
 from .serializers import (
@@ -102,26 +101,3 @@ class ChildUpdateView(generics.UpdateAPIView):
         # Return detailed information
         detail_serializer = ChildDetailSerializer(instance)
         return Response(detail_serializer.data)
-
-
-class ChildDeleteView(generics.DestroyAPIView):
-    """
-    API endpoint to delete a child.
-    Only the primary parent can delete their child.
-    """
-    queryset = Child.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsParent, IsChildPrimaryParent]
-    lookup_field = 'id'
-    
-    def destroy(self, request, *args, **kwargs):
-        """Override destroy to return a custom success message."""
-        instance = self.get_object()
-        child_name = f"{instance.first_name} {instance.last_name}"
-        self.perform_destroy(instance)
-        return Response(
-            {
-                'message': _('Child deleted successfully'),
-                'child_name': child_name
-            },
-            status=status.HTTP_200_OK
-        )

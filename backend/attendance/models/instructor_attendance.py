@@ -514,7 +514,7 @@ class InstructorAttendance(models.Model):
             int: Number of attendance records created
         """
         from datetime import timedelta
-        from courses.models import Lecture, Season as SeasonModel
+        from courses.models import Lecture, Season as SeasonModel, Weekday
 
         # Get the active season if not provided
         if season is None:
@@ -529,7 +529,8 @@ class InstructorAttendance(models.Model):
         while current_date <= end_date:
 
             # Supervisors: Generate based on weekly schedule
-            weekday = current_date.weekday()
+            # day_of_week uses the Weekday enum (Sat=0), not Python's Mon=0
+            weekday = Weekday.of(current_date)
             for schedule in SupervisorSchedule.objects.filter(day_of_week=weekday):
                 obj, created = cls.objects.get_or_create(
                     instructor=schedule.instructor,

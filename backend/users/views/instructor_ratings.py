@@ -68,11 +68,11 @@ class InstructorRatingsView(generics.RetrieveAPIView):
         # Get individual ratings with pagination support
         student_ratings = StudentInstructorRating.objects.filter(
             instructor=instructor
-        ).select_related('student__user', 'course').order_by('-created_at')
+        ).select_related('student__user', 'course', 'online_course').order_by('-created_at')
 
         parent_ratings = ParentInstructorRating.objects.filter(
             instructor=instructor
-        ).select_related('parent__user', 'course').order_by('-created_at')
+        ).select_related('parent__user', 'course', 'online_course').order_by('-created_at')
 
         student_paginator = StudentRatingsPagination()
         parent_paginator = ParentRatingsPagination()
@@ -156,7 +156,8 @@ class InstructorRateView(generics.CreateAPIView):
                 parent=request.user.parent_profile,
                 instructor=instructor,
                 defaults={
-                    'course': serializer.validated_data['course'],
+                    'course': serializer.validated_data.get('course'),
+                    'online_course': serializer.validated_data.get('online_course'),
                     'rating': serializer.validated_data['rating'], 
                     'feedback': serializer.validated_data.get('feedback', '')
                 }
@@ -166,7 +167,8 @@ class InstructorRateView(generics.CreateAPIView):
                 student=request.user.student_profile,
                 instructor=instructor,
                 defaults={
-                    'course': serializer.validated_data['course'],
+                    'course': serializer.validated_data.get('course'),
+                    'online_course': serializer.validated_data.get('online_course'),
                     'rating': serializer.validated_data['rating'], 
                     'feedback': serializer.validated_data.get('feedback', '')
                 }

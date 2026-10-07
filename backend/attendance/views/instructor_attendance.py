@@ -545,14 +545,15 @@ class UnifiedFingerprintScanView(DeviceAuthenticationMixin, views.APIView):
 
         Returns list of created InstructorAttendance records.
         """
-        from courses.models import Lecture
+        from courses.models import Lecture, Weekday
 
         season = Season.objects.filter(is_active=True).first()
         if not season:
             return []
 
         created_records = []
-        weekday = date.weekday()
+        # day_of_week uses the Weekday enum (Sat=0), not Python's Mon=0
+        weekday = Weekday.of(date)
 
         # Check supervisor schedules for today
         schedules = SupervisorSchedule.objects.filter(

@@ -705,3 +705,82 @@ class InstructorRatingsPaginationTests(TestCase):
         self.assertEqual(parent_ratings['count'], 1)
         self.assertEqual(len(parent_ratings['results']), 1)
         self.assertEqual(parent_ratings['results'][0]['rating'], 9)
+
+
+class InstructorRatingOnlineCourseTests(TestCase):
+    """Rating an instructor through one of their online courses."""
+
+    def setUp(self):
+        from courses_online.models import OnlineCourse
+        from enrollments_payments.models import Enrollment, EnrollmentStatus
+        from parents.models import Child
+
+        self.client = APIClient()
+        instructor_user = CustomUser.objects.create_user(
+            phone_number1='+201000000951', password='Password123!',
+            first_name='Ins', last_name='Tructor', role='instructor',
+            dob='1980-01-01', gender='male')
+        self.instructor = Instructor.objects.create(
+            user=instructor_user, monthly_salary=1000)
+        self.online_course = OnlineCourse.objects.create(
+            name='Tajweed Online', instructor=self.instructor, price=100)
+        self.other_online_course = OnlineCourse.objects.create(
+            name='Someone else', price=100)
+
+        self.student_user = CustomUser.objects.create_user(
+            phone_number1='+201000000952', password='Password123!',
+            first_name='Stu', last_name='Dent', role='student',
+            dob='2006-01-01', gender='male')
+        Enrollment.objects.create(
+            online_course=self.online_course,
+            student=self.student_user.student_profile,
+            status=EnrollmentStatus.ACTIVE)
+
+        self.parent_user = CustomUser.objects.create_user(
+            phone_number1='+201000000953', password='Password123!',
+            first_name='Par', last_name='Ent', role='parent',
+            dob='1976-01-01', gender='male')
+        child = Child.objects.create(
+            first_name='Kid', last_name='Ent',
+            primary_parent=self.parent_user.parent_profile,
+            dob='2014-01-01', gender='male')
+        Enrollment.objects.create(
+            online_course=self.online_course, child=child,
+            status=EnrollmentStatus.ACTIVE)
+
+        self.url = f'/api/users/instructors/{self.instructor.id}/rate/'
+
+    def test_student_rates_through_online_course(self):
+        from users.models.student_instructor_rating import StudentInstructorRating
+
+        self.client.force_authenticate(user=self.student_user)
+        response = self.client.post(self.url, {
+            'online_course': str(self.online_course.id), 'rating': 8, 'feedback': 'good'})
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        rating = StudentInstructorRating.objects.get(instructor=self.instructor)
+        self.assertEqual(rating.online_course, self.online_course)
+        self.assertIsNone(rating.course)
+
+        ratings = self.client.get(
+            f'/api/users/instructors/{self.instructor.id}/ratings/').data
+        self.assertEqual(
+            ratings['ratings']['student_ratings']['results'][0]['course_name'],
+            'Tajweed Online')
+
+    def test_parent_rates_through_child_online_course(self):
+        self.client.force_authenticate(user=self.parent_user)
+        response = self.client.post(self.url, {
+            'online_course': str(self.online_course.id), 'rating': 9})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+    def test_online_course_of_another_instructor_is_rejected(self):
+        self.client.force_authenticate(user=self.student_user)
+        response = self.client.post(self.url, {
+            'online_course': str(self.other_online_course.id), 'rating': 8})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_course_is_required(self):
+        self.client.force_authenticate(user=self.student_user)
+        response = self.client.post(self.url, {'rating': 8})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

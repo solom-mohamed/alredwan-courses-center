@@ -9,6 +9,7 @@ from django.db.models import Count, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 
+from courses.filters import CourseListFilter
 from courses.models import Course, CourseSchedule
 from courses.serializers import CourseListSerializer, CourseDetailSerializer, CourseUpdateSerializer, CourseScheduleSerializer
 from courses.permissions import IsAdminOrCourseInstructor
@@ -33,9 +34,11 @@ class CourseListView(generics.ListAPIView):
     - num_lectures__gte, num_lectures__lte
     - season__season_type, season__is_active
     - instructor__type
+    - state (ongoing|upcoming|ended), availability (open|full), season_name
 
     Search: name, description, instructor name
-    Ordering: start_date, end_date, price, created_at, name, capacity, num_lectures
+    Ordering: start_date, end_date, price, created_at, name, capacity,
+              num_lectures, season__name, _enrolled_count
     """
     serializer_class = CourseListSerializer
     permission_classes = [AllowAny]
@@ -43,29 +46,15 @@ class CourseListView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend,
                        filters.SearchFilter, filters.OrderingFilter]
 
-    # Define filters directly in the view
-    filterset_fields = {
-        'is_active': ['exact'],
-        'season': ['exact'],
-        'instructor': ['exact'],
-        'for_adults': ['exact'],
-        'tags': ['exact'],
-        'price': ['gte', 'lte'],
-        'start_date': ['gte', 'lte'],
-        'end_date': ['gte', 'lte'],
-        'capacity': ['gte', 'lte'],
-        'min_age': ['lte'],
-        'max_age': ['gte'],
-        'num_lectures': ['gte', 'lte'],
-        'season__season_type': ['exact'],
-        'season__is_active': ['exact'],
-        'instructor__type': ['exact'],
-    }
+    # Field lookups plus the catalogue filters (state, availability,
+    # season_name) live in CourseListFilter.
+    filterset_class = CourseListFilter
 
     search_fields = ['name', 'description',
                      'instructor__user__first_name', 'instructor__user__last_name']
     ordering_fields = ['start_date', 'end_date', 'price',
-                       'created_at', 'name', 'capacity', 'num_lectures']
+                       'created_at', 'name', 'capacity', 'num_lectures',
+                       'season__name', '_enrolled_count']
     ordering = ['-start_date']
 
     def get_queryset(self):
@@ -81,9 +70,12 @@ class CourseListView(generics.ListAPIView):
             'tags',
             'schedules'
         ).annotate(
+            # distinct: the ratings joins below would otherwise multiply
+            # the enrollment rows (and break the availability filter).
             _enrolled_count=Count(
                 'enrollments',
-                filter=Q(enrollments__status='active')
+                filter=Q(enrollments__status='active'),
+                distinct=True,
             ),
             # Annotate rating statistics to avoid N+1 queries
             _student_rating_sum=Coalesce(

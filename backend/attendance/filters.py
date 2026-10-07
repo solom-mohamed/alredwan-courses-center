@@ -16,7 +16,8 @@ class InstructorAttendanceFilter(FilterSet):
     Available filters:
     - date_from: Filter records from this date (inclusive)
     - date_to: Filter records up to this date (inclusive)
-    - instructor: Filter by instructor ID
+    - instructor: Filter by instructor's user ID (UUID)
+    - instructor_id: Filter by Instructor ID
     - gender: Filter by instructor's gender (male/female)
     - status: Filter by attendance status (present, absent, late, pending, not_started)
     - attendance_type: Filter by type (lecture, supervision)
@@ -40,6 +41,10 @@ class InstructorAttendanceFilter(FilterSet):
     instructor = django_filters.UUIDFilter(
         field_name='instructor__user__id',
         help_text='Filter by instructor user ID (UUID)'
+    )
+    instructor_id = django_filters.NumberFilter(
+        field_name='instructor_id',
+        help_text='Filter by instructor (Instructor) ID, as in /dashboard/instructors/<id>'
     )
     gender = django_filters.ChoiceFilter(
         field_name='instructor__user__gender',
@@ -83,7 +88,7 @@ class InstructorAttendanceFilter(FilterSet):
     class Meta:
         model = InstructorAttendance
         fields = [
-            'date_from', 'date_to', 'instructor', 'gender', 'instructor_type',
+            'date_from', 'date_to', 'instructor', 'instructor_id', 'gender', 'instructor_type',
             'status', 'attendance_type', 'rated_by', 'has_rating', 'season',
             'checked_in', 'checked_out'
         ]

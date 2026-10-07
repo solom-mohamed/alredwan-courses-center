@@ -18,17 +18,18 @@ class StudentInstructorRatingAdmin(ExcelExportMixin, admin.ModelAdmin):
     autocomplete_fields = ['student', 'instructor', 'course']
     date_hierarchy = 'created_at'
     list_select_related = ('student', 'student__user',
-                           'instructor', 'instructor__user', 'course')
+                           'instructor', 'instructor__user', 'course',
+                           'online_course')
 
     fieldsets = (
-        ('معلومات التقييم', {'fields': ('student', 'instructor', 'course')}),
+        ('معلومات التقييم', {'fields': ('student', 'instructor', 'course', 'online_course')}),
         ('التقييم', {'fields': ('rating', 'feedback')}),
     )
 
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('student', 'instructor', 'course', 'rating', 'feedback'),
+            'fields': ('student', 'instructor', 'course', 'online_course', 'rating', 'feedback'),
         }),
     )
 
@@ -43,7 +44,7 @@ class StudentInstructorRatingAdmin(ExcelExportMixin, admin.ModelAdmin):
     get_instructor.admin_order_field = 'instructor'
 
     def get_course(self, obj):
-        return obj.course
+        return obj.course or obj.online_course
     get_course.short_description = 'الدورة'
     get_course.admin_order_field = 'course'
 
@@ -65,6 +66,8 @@ class StudentInstructorRatingAdmin(ExcelExportMixin, admin.ModelAdmin):
             form.base_fields['instructor'].label = 'المدرس'
         if 'course' in form.base_fields:
             form.base_fields['course'].label = 'الدورة'
+        if 'online_course' in form.base_fields:
+            form.base_fields['online_course'].label = 'الدورة الإلكترونية'
         if 'rating' in form.base_fields:
             form.base_fields['rating'].label = 'التقييم'
         if 'feedback' in form.base_fields:
@@ -88,11 +91,12 @@ class ParentInstructorRatingAdmin(ExcelExportMixin, admin.ModelAdmin):
                      'instructor__user__first_name', 'feedback')
     date_hierarchy = 'created_at'
     list_select_related = ('parent', 'parent__user',
-                           'instructor', 'instructor__user', 'course')
+                           'instructor', 'instructor__user', 'course',
+                           'online_course')
     autocomplete_fields = ['parent', 'instructor', 'course']
 
     fieldsets = (
-        ('معلومات التقييم', {'fields': ('parent', 'instructor', 'course')}),
+        ('معلومات التقييم', {'fields': ('parent', 'instructor', 'course', 'online_course')}),
         ('التقييم', {'fields': ('rating', 'feedback')}),
     )
 
@@ -107,7 +111,7 @@ class ParentInstructorRatingAdmin(ExcelExportMixin, admin.ModelAdmin):
     get_instructor.admin_order_field = 'instructor'
 
     def get_course(self, obj):
-        return obj.course
+        return obj.course or obj.online_course
     get_course.short_description = 'الدورة'
     get_course.admin_order_field = 'course'
 
@@ -129,6 +133,8 @@ class ParentInstructorRatingAdmin(ExcelExportMixin, admin.ModelAdmin):
             form.base_fields['instructor'].label = 'المدرس'
         if 'course' in form.base_fields:
             form.base_fields['course'].label = 'الدورة'
+        if 'online_course' in form.base_fields:
+            form.base_fields['online_course'].label = 'الدورة الإلكترونية'
         if 'rating' in form.base_fields:
             form.base_fields['rating'].label = 'التقييم'
         if 'feedback' in form.base_fields:

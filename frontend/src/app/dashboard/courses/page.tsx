@@ -3,26 +3,17 @@ import { getUser } from "@/actions/auth";
 import { getAllCourses } from "@/actions/courses";
 import { getAllOnlineCourses } from "@/actions/online-courses";
 import PublicCourseCatalog from "@/components/courses/PublicCourseCatalog";
+import { getCourseCatalogQuery } from "@/lib/course-catalog-query";
 
 export default async function Page(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = searchParams.page ? Number(searchParams.page) : 1;
-  const search =
-    typeof searchParams.search === "string" ? searchParams.search : undefined;
-  const season =
-    typeof searchParams.season === "string" ? searchParams.season : undefined;
 
   const [{ first_name, role }, paginatedCourses, onlineCourses] =
     await Promise.all([
       getUser(),
-      getAllCourses({
-        page,
-        search,
-        season,
-        page_size: 8,
-      }),
+      getAllCourses(getCourseCatalogQuery(searchParams)),
       getAllOnlineCourses(),
     ]);
 

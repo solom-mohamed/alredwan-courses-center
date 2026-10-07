@@ -49,9 +49,14 @@ export async function rateCourse(
 /**
  * Submit a rating for an instructor
  */
+/** The course the rating is about: a physical course id or an online course uuid. */
+export type InstructorRatingCourse =
+  | { course: number; online_course?: never }
+  | { online_course: string; course?: never };
+
 export async function rateInstructor(
   instructorId: number,
-  courseId: number,
+  ratedCourse: InstructorRatingCourse,
   rating: number,
   feedback: string,
 ) {
@@ -60,7 +65,7 @@ export async function rateInstructor(
     const response = await client.post(
       `/api/users/instructors/${instructorId}/rate/`,
       {
-        course: courseId,
+        ...ratedCourse,
         rating,
         feedback,
       },

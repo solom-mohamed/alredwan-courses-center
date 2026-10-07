@@ -5,7 +5,10 @@ import CourseDetailLayout, {
   CoursePurchaseAction,
 } from "@/components/courses/CourseDetailLayout";
 import CourseHeader from "@/components/courses/CourseHeader";
-import { getCourseEnrollmentState } from "@/lib/course-enrollment";
+import {
+  getCourseEnrollmentState,
+  getDashboardCannotRateReason,
+} from "@/lib/course-enrollment";
 
 export default async function Page({
   params,
@@ -53,6 +56,7 @@ export default async function Page({
         type: "course",
         id: courseId,
         showForm: enrollment.hasActiveEnrollment,
+        cannotRateReason: getDashboardCannotRateReason(enrollment),
       }}
     />
   );

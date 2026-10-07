@@ -30,6 +30,8 @@ export interface CourseDetailLayoutProps {
     type: "course" | "online_course";
     id: string;
     showForm: boolean;
+    /** See `RatingsSection.cannotRateReason`. */
+    cannotRateReason?: string;
   };
   backHref?: string;
 }
@@ -157,6 +159,7 @@ export default function CourseDetailLayout({
             type={ratings.type}
             id={ratings.id}
             showForm={ratings.showForm}
+            cannotRateReason={ratings.cannotRateReason}
           />
         </div>
       </div>

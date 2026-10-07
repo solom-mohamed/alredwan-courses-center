@@ -15,11 +15,23 @@ class StudentInstructorRating(models.Model):
         related_name="student_ratings",
         verbose_name="المعلم",
     )
+    # The course the rater took with this instructor: exactly one of a
+    # physical course or an online course.
     course = models.ForeignKey(
         "courses.Course",
         verbose_name="الدورة",
         on_delete=models.CASCADE,
         related_name="student_instructor_ratings",
+        null=True,
+        blank=True,
+    )
+    online_course = models.ForeignKey(
+        "courses_online.OnlineCourse",
+        verbose_name="الدورة الإلكترونية",
+        on_delete=models.CASCADE,
+        related_name="student_instructor_ratings",
+        null=True,
+        blank=True,
     )
     rating = models.PositiveSmallIntegerField(
         verbose_name="التقييم",
@@ -37,6 +49,13 @@ class StudentInstructorRating(models.Model):
             models.CheckConstraint(
                 condition=Q(rating__gte=1.00, rating__lte=10.00),
                 name="student_instructor_rating_range",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(course__isnull=False, online_course__isnull=True)
+                    | Q(course__isnull=True, online_course__isnull=False)
+                ),
+                name="student_instructor_rating_one_course",
             ),
             models.UniqueConstraint(
                 fields=["student", "instructor"],
@@ -66,11 +85,23 @@ class ParentInstructorRating(models.Model):
         related_name="parent_ratings",
         verbose_name="المعلم",
     )
+    # The course the rater took with this instructor: exactly one of a
+    # physical course or an online course.
     course = models.ForeignKey(
         "courses.Course",
         verbose_name="الدورة",
         on_delete=models.CASCADE,
         related_name="parent_instructor_ratings",
+        null=True,
+        blank=True,
+    )
+    online_course = models.ForeignKey(
+        "courses_online.OnlineCourse",
+        verbose_name="الدورة الإلكترونية",
+        on_delete=models.CASCADE,
+        related_name="parent_instructor_ratings",
+        null=True,
+        blank=True,
     )
     rating = models.PositiveSmallIntegerField(
         verbose_name="التقييم",
@@ -88,6 +119,13 @@ class ParentInstructorRating(models.Model):
             models.CheckConstraint(
                 condition=Q(rating__gte=1.00, rating__lte=10.00),
                 name="parent_instructor_rating_range",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(course__isnull=False, online_course__isnull=True)
+                    | Q(course__isnull=True, online_course__isnull=False)
+                ),
+                name="parent_instructor_rating_one_course",
             ),
             models.UniqueConstraint(
                 fields=["parent", "instructor"], name="unique_parent_instructor_rating"

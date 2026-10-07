@@ -42,7 +42,7 @@ export default async function Page({ params }: PageProps) {
 
         <div className="flex gap-12 max-[1000px]:w-full">
           <Link
-            href={`/dashboard/admin/todays-staff-attendances?instructor=${id}`}
+            href={`/dashboard/all-attendances?instructor=${id}`}
             className="max-[1000px]:w-full"
           >
             <Button

@@ -463,3 +463,72 @@ class GenerateAttendanceTestCase(TestCase):
 
         self.assertEqual(response.data['start_date'], str(start_date))
         self.assertEqual(response.data['end_date'], str(end_date))
+
+
+class SupervisionWeekdayMappingTest(TestCase):
+    """day_of_week is the Weekday enum (Sat=0), so a Saturday schedule must land on Saturdays."""
+
+    def test_schedules_land_on_their_own_weekday(self):
+        user = CustomUser.objects.create_user(
+            phone_number1='+201000000977', password='Password123!',
+            first_name='Sup', last_name='Ervisor', role='instructor',
+            dob='1980-01-01', gender='male')
+        supervisor = Instructor.objects.create(
+            user=user, monthly_salary=1000, type='supervisor')
+        today = timezone.localdate()
+        Season.objects.create(
+            name='Weekday season', season_type='school',
+            start_date=today - timedelta(days=30),
+            end_date=today + timedelta(days=60), is_active=True)
+        SupervisorSchedule.objects.create(
+            instructor=supervisor, day_of_week=0,  # Saturday
+            start_time=time(8, 0), end_time=time(14, 0))
+        SupervisorSchedule.objects.create(
+            instructor=supervisor, day_of_week=2,  # Monday
+            start_time=time(8, 0), end_time=time(14, 0))
+
+        InstructorAttendance.generate_for_date_range(today, today + timedelta(days=6))
+
+        # Python weekday(): Monday=0 … Saturday=5
+        days = sorted(a.date.weekday() for a in InstructorAttendance.objects.filter(
+            instructor=supervisor))
+        self.assertEqual(days, [0, 5])
+
+
+class AttendanceInstructorIdFilterTest(TestCase):
+    """GET /api/attendance/all/?instructor_id=<Instructor.id> — used by "سجل الحضور الكامل"."""
+
+    def test_filters_by_instructor_id_without_date(self):
+        from rest_framework.test import APIClient
+        from attendance.models import AttendanceType, AttendanceStatus
+
+        admin = CustomUser.objects.create_user(
+            phone_number1='+201000000981', password='Password123!',
+            first_name='Ad', last_name='Min', role='admin',
+            dob='1980-01-01', gender='male', is_staff=True)
+        instructors = []
+        for i in range(2):
+            user = CustomUser.objects.create_user(
+                phone_number1=f'+20100000098{i + 2}', password='Password123!',
+                first_name='Ins', last_name=str(i), role='instructor',
+                dob='1980-01-01', gender='male')
+            instructors.append(Instructor.objects.create(user=user, monthly_salary=1000))
+        today = timezone.localdate()
+        season = Season.objects.create(
+            name='Filter season', season_type='school',
+            start_date=today - timedelta(days=90), is_active=True)
+        for offset in (0, 10, 40):
+            for instructor in instructors:
+                InstructorAttendance.objects.create(
+                    instructor=instructor, date=today - timedelta(days=offset),
+                    attendance_type=AttendanceType.SUPERVISION,
+                    status=AttendanceStatus.NOT_STARTED, season=season)
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        response = client.get('/api/attendance/all/', {
+            'instructor_id': instructors[0].id, 'page_size': 100})
+
+        self.assertEqual(response.status_code, 200, response.data)
+        results = response.data['results'] if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(results), 3)

@@ -1,6 +1,5 @@
 import type { FunctionComponent, SVGProps } from "react";
 import type { ParentChildDetail } from "@/actions/user";
-import DeleteChildButton from "@/components/dashboard/parent/DeleteChildButton";
 import EditChildButton from "@/components/dashboard/parent/EditChildButton";
 import ActiveCourseIcon from "@/components/icons/ActiveCourseIcon";
 import CheckBadgeIcon from "@/components/icons/CheckBadgeIcon";
@@ -98,10 +97,6 @@ export default function ChildCard({
           {showActions && (
             <div className="tablet-sm:justify-end flex items-center gap-2">
               <EditChildButton child={child} />
-              <DeleteChildButton
-                childId={child.id}
-                childName={child.first_name}
-              />
             </div>
           )}
           <Button

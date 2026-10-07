@@ -426,10 +426,9 @@ class ChildUpdateViewTest(ParentChildBaseTestCase):
 
 
 class ChildDeleteViewTest(ParentChildBaseTestCase):
-    """Tests for deleting children"""
+    """Parents may not delete their children (the endpoint was removed)."""
 
-    def test_delete_own_child(self):
-        """Test deleting child as primary parent"""
+    def test_parent_cannot_delete_own_child(self):
         child = Child.objects.create(
             primary_parent=self.parent,
             first_name='Ahmed',
@@ -442,22 +441,20 @@ class ChildDeleteViewTest(ParentChildBaseTestCase):
         response = self.client.delete(
             f'/api/parents/children/{child.id}/delete/')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(Child.objects.filter(id=child.id).exists())
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Child.objects.filter(id=child.id).exists())
 
-    def test_cannot_delete_other_parents_child(self):
-        """Test that parent cannot delete another parent's child"""
+    def test_child_detail_does_not_accept_delete(self):
         child = Child.objects.create(
-            primary_parent=self.other_parent,
+            primary_parent=self.parent,
             first_name='Ahmed',
-            last_name='Hassan',
+            last_name='Mohamed',
             dob='2010-05-15',
             gender='boy'
         )
 
         self.client.force_authenticate(user=self.parent_user)
-        response = self.client.delete(
-            f'/api/parents/children/{child.id}/delete/')
+        response = self.client.delete(f'/api/parents/children/{child.id}/')
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertTrue(Child.objects.filter(id=child.id).exists())

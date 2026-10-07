@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import PublicCourseCard from "@/components/courses/PublicCourseCard";
 import {
   buildAllCoursesView,
@@ -33,7 +34,11 @@ export default function DashboardAllCoursesView({
   showEnroll?: boolean;
 }) {
   const courses = buildAllCoursesView(inputCourses);
-  const filterConfig = getAllCoursesFilterConfig(courses);
+  const searchParams = useSearchParams();
+  const filterConfig = getAllCoursesFilterConfig(
+    courses,
+    searchParams.get("filter"),
+  );
 
   return (
     <DataView

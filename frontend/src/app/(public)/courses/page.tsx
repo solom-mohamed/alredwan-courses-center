@@ -1,4 +1,5 @@
 import PublicCourseCatalog from "@/components/courses/PublicCourseCatalog";
+import { getCourseCatalogQuery } from "@/lib/course-catalog-query";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { getPublicCourses } from "@/actions/courses";
@@ -13,19 +14,9 @@ export default async function Page(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
-  const page = searchParams.page ? Number(searchParams.page) : 1;
-  const search =
-    typeof searchParams.search === "string" ? searchParams.search : undefined;
-  const season =
-    typeof searchParams.season === "string" ? searchParams.season : undefined;
 
   const [paginatedCourses, onlineCourses] = await Promise.all([
-    getPublicCourses({
-      page,
-      search,
-      season,
-      page_size: 8,
-    }),
+    getPublicCourses(getCourseCatalogQuery(searchParams)),
     getPublicOnlineCourses(),
   ]);
 

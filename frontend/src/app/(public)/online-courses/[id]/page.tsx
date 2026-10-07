@@ -15,6 +15,7 @@ import { getPublicOnlineCourseById } from "@/actions/online-courses";
 import CourseImage from "@/assets/course-img.jpg";
 import PublicCourseHero from "@/components/courses/PublicCourseHero";
 import RatingsSection from "@/components/ratings/RatingsSection";
+import { getPublicCannotRateReason } from "@/lib/rating-access";
 import Button from "@/components/ui/Button";
 import {
   CONTACT_EMAIL,
@@ -192,6 +193,7 @@ export default async function Page({ params }: PageProps) {
               showForm={
                 session?.role === "student" || session?.role === "parent"
               }
+              cannotRateReason={getPublicCannotRateReason(session?.role)}
             />
           </div>
 

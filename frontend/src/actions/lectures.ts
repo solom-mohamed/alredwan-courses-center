@@ -28,7 +28,8 @@ export async function getLecturesByCourseId(
       const { data } = await apiClient.get<
         PaginatedResponse<LectureListItem> | LectureListItem[]
       >(
-        `/api/courses/${courseId}/${details.role == "instructor" ? "" : details.role}/${details.childId ? details.childId + "/" : ""}lectures/`,
+        // instructor: /lectures/ · student: /student/lectures/ · parent: /parent/<child>/lectures/
+        `/api/courses/${courseId}/${details.role === "instructor" ? "" : `${details.role}/`}${details.childId ? details.childId + "/" : ""}lectures/`,
         {
           params: {
             page_size: params?.page_size ?? 100,

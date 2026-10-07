@@ -14,14 +14,15 @@ import {
 import TimePickerPopover from "@/components/ui/TimePickerPopover";
 import { cn } from "@/lib/utils";
 
+// Backend Weekday enum: Saturday=0 … Friday=6 (courses.models.Weekday).
 const DAYS = [
-  { label: "السبت", value: 6 },
-  { label: "الأحد", value: 0 },
-  { label: "الاثنين", value: 1 },
-  { label: "الثلاثاء", value: 2 },
-  { label: "الأربعاء", value: 3 },
-  { label: "الخميس", value: 4 },
-  { label: "الجمعة", value: 5 },
+  { label: "السبت", value: 0 },
+  { label: "الأحد", value: 1 },
+  { label: "الاثنين", value: 2 },
+  { label: "الثلاثاء", value: 3 },
+  { label: "الأربعاء", value: 4 },
+  { label: "الخميس", value: 5 },
+  { label: "الجمعة", value: 6 },
 ];
 
 interface AddScheduleModalProps {

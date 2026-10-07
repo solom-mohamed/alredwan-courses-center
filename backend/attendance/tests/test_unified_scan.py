@@ -18,7 +18,7 @@ from datetime import timedelta, time
 from decimal import Decimal
 
 from users.models import CustomUser, Instructor
-from courses.models import Season, Course, CourseSchedule, Lecture
+from courses.models import Season, Course, CourseSchedule, Lecture, Weekday
 from attendance.models import (
     InstructorAttendance,
     SupervisorSchedule,
@@ -119,7 +119,7 @@ class UnifiedScanAutoCreateTest(UnifiedFingerprintScanTestCase):
     def test_scan_auto_creates_from_supervisor_schedule(self):
         """Test that scan creates attendance based on supervisor schedule"""
         today = timezone.localdate()
-        weekday = today.weekday()
+        weekday = Weekday.of(today)
         
         # Create schedule for today
         schedule = SupervisorSchedule.objects.create(
@@ -494,7 +494,7 @@ class LateCheckInTest(UnifiedFingerprintScanTestCase):
     def test_late_check_in_with_schedule(self):
         """Test that late check-in is detected with schedule"""
         today = timezone.localdate()
-        weekday = today.weekday()
+        weekday = Weekday.of(today)
         
         # Create schedule that started 1 hour ago with 15 min grace
         past_start = (timezone.now() - timedelta(hours=1)).time()

@@ -6,6 +6,7 @@ import { getOptionalUser } from "@/actions/auth";
 import { getInstructorById } from "@/actions/user";
 import InstructorProfile from "@/assets/instructor-profile.png";
 import RatingsSection from "@/components/ratings/RatingsSection";
+import { getPublicCannotRateReason } from "@/lib/rating-access";
 
 export default async function InstructorPage({
   params,
@@ -155,6 +156,7 @@ export default async function InstructorPage({
           id={id}
           showForm={session?.role === "student" || session?.role === "parent"}
           courseId={undefined}
+          cannotRateReason={getPublicCannotRateReason(session?.role)}
         />
       </section>
     </div>

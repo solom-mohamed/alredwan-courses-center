@@ -121,29 +121,6 @@ export async function updateChild(
   }
 }
 
-export async function deleteChild(id: string) {
-  try {
-    const apiClient = await getAuthApiClient();
-    await apiClient.delete(`/api/parents/children/${id}/delete/`);
-    return { error: null };
-  } catch (error: unknown) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "digest" in error &&
-      error.digest === "DYNAMIC_SERVER_USAGE"
-    ) {
-      throw error;
-    }
-    if (isAxiosError(error)) {
-      return {
-        error: error.response?.data ?? "حدث خطأ أثناء حذف الطفل",
-      };
-    }
-    return { error: "حدث خطأ غير متوقع" };
-  }
-}
-
 export async function getChildById(
   id: string,
 ): Promise<ParentChildDetail | null> {

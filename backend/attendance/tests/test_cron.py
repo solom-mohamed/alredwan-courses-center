@@ -14,7 +14,7 @@ from datetime import timedelta, time
 from unittest.mock import patch
 
 from users.models import CustomUser, Instructor
-from courses.models import Season, Lecture, Course, Tag
+from courses.models import Season, Lecture, Course, Tag, Weekday
 from courses.models.lecture import LectureStatus
 from attendance.models import (
     InstructorAttendance,
@@ -99,7 +99,7 @@ class GenerateInstructorAttendanceWeeklyTest(CronJobBaseTestCase):
         # Create a schedule for today's weekday
         schedule = SupervisorSchedule.objects.create(
             instructor=self.supervisor,
-            day_of_week=today.weekday(),
+            day_of_week=Weekday.of(today),
             start_time=time(8, 0),
             end_time=time(14, 0)
         )
@@ -133,7 +133,7 @@ class GenerateInstructorAttendanceWeeklyTest(CronJobBaseTestCase):
         # Create a schedule
         SupervisorSchedule.objects.create(
             instructor=self.supervisor,
-            day_of_week=today.weekday(),
+            day_of_week=Weekday.of(today),
             start_time=time(8, 0),
             end_time=time(14, 0)
         )
@@ -168,7 +168,7 @@ class GenerateInstructorAttendanceWeeklyTest(CronJobBaseTestCase):
 
         SupervisorSchedule.objects.create(
             instructor=self.supervisor,
-            day_of_week=timezone.localdate().weekday(),
+            day_of_week=Weekday.of(timezone.localdate()),
             start_time=time(8, 0),
             end_time=time(14, 0)
         )

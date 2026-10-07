@@ -75,6 +75,11 @@ export async function getAttendances(params?: {
       apiParams.date_to = apiParams.date;
       delete apiParams.date;
     }
+    // The API's `instructor` filter takes the user UUID; we hold the Instructor id.
+    if (apiParams.instructor) {
+      apiParams.instructor_id = apiParams.instructor;
+      delete apiParams.instructor;
+    }
 
     const { data } = await apiClient.get<
       PaginatedResponse<StaffAttendanceListItem> | StaffAttendanceListItem[]

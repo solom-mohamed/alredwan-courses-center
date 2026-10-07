@@ -59,6 +59,11 @@ interface RatingsSectionProps {
   showForm?: boolean;
   courseId?: number; // Needed for instructor rating
   compact?: boolean;
+  /**
+   * Set for a signed-in viewer who may not rate (staff, or not enrolled):
+   * shown instead of the sign-in prompt, which is only for visitors.
+   */
+  cannotRateReason?: string;
 }
 
 const RatingsSection: React.FC<RatingsSectionProps> = ({
@@ -67,6 +72,7 @@ const RatingsSection: React.FC<RatingsSectionProps> = ({
   showForm = false,
   courseId,
   compact = false,
+  cannotRateReason,
 }) => {
   const [data, setData] = useState<RatingsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,16 +184,18 @@ const RatingsSection: React.FC<RatingsSectionProps> = ({
               <div className="space-y-2">
                 <h4 className="text-3xl font-bold text-gray-900">أضف تقييمك</h4>
                 <p className="text-xl text-gray-500">
-                  يرجى تسجيل الدخول كطالب أو ولي أمر لتتمكن من تقييم هذه الصفحة
-                  ومشاركة تجربتك.
+                  {cannotRateReason ??
+                    "يرجى تسجيل الدخول كطالب أو ولي أمر لتتمكن من تقييم هذه الصفحة ومشاركة تجربتك."}
                 </p>
               </div>
-              <Link
-                href="/?login=true"
-                className="bg-olive-500 shadow-olive-500/20 hover:bg-olive-400 inline-block w-full rounded-2xl py-4 text-center text-2xl font-bold text-white shadow-lg transition-colors"
-              >
-                تسجيل الدخول
-              </Link>
+              {!cannotRateReason && (
+                <Link
+                  href="/?login=true"
+                  className="bg-olive-500 shadow-olive-500/20 hover:bg-olive-400 inline-block w-full rounded-2xl py-4 text-center text-2xl font-bold text-white shadow-lg transition-colors"
+                >
+                  تسجيل الدخول
+                </Link>
+              )}
             </div>
           )}
 

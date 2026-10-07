@@ -4,7 +4,10 @@ import CourseDetailLayout, {
   CourseDetailUnavailable,
   CoursePurchaseAction,
 } from "@/components/courses/CourseDetailLayout";
-import { getCourseEnrollmentState } from "@/lib/course-enrollment";
+import {
+  getCourseEnrollmentState,
+  getDashboardCannotRateReason,
+} from "@/lib/course-enrollment";
 
 const BACK_HREF = "/dashboard/courses?type=online";
 
@@ -52,6 +55,7 @@ export default async function Page({
         type: "online_course",
         id: courseId,
         showForm: enrollment.hasActiveEnrollment,
+        cannotRateReason: getDashboardCannotRateReason(enrollment),
       }}
     />
   );
